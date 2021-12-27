@@ -157,6 +157,27 @@ export interface IRecaptchaV3TaskProxylessResult {
   gRecaptchaResponse: string;
 }
 
+export interface IFunCaptchaTaskProxyless {
+  /**
+   * Must be set to FunCaptchaTaskProxyless
+   */
+  type: TaskTypes.FUNCAPTCHA_PROXYLESS;
+  /**
+   * Address of target web page
+   */
+  websiteURL: string;
+  /**
+   * 	Arkose Labs public key
+   */
+  websitePublicKey: string;
+}
+export interface IFunCaptchaTaskProxylessResult {
+  /**
+   * Token string required for interacting with the submit form on the target website.
+   */
+  token: string;
+}
+
 export interface IImageToTextTask {
   /**
    * Must be ImageToTextTask

@@ -5,7 +5,7 @@ import {
   ICreateTaskResponse,
   IGetBalanceResponse,
   IGetQueueStatsResponse,
-  IGetTaskResultResponse
+  IGetTaskResultResponse,
 } from "./interfaces";
 
 export class AntiCaptcha {
@@ -21,12 +21,12 @@ export class AntiCaptcha {
    */
   constructor(clientKey: string, debugMode = false) {
     this.api = create({
-      baseURL: "https://api.anti-captcha.com"
+      baseURL: "https://api.anti-captcha.com",
     });
     this.debug = debugMode;
 
     // Auto-fill client key on each request.
-    this.api.addRequestTransform(request => {
+    this.api.addRequestTransform((request) => {
       if (!request.data) {
         request.data = { clientKey };
       } else {
@@ -42,7 +42,7 @@ export class AntiCaptcha {
     queueType: QueueTypes
   ): Promise<IGetQueueStatsResponse> {
     const response = (await this.api.post("getQueueStats", {
-      queueId: queueType
+      queueId: queueType,
     })) as ApiResponse<IGetQueueStatsResponse>;
     return response.data;
   }
@@ -51,9 +51,9 @@ export class AntiCaptcha {
    * Get the account balance.
    */
   public async getBalance() {
-    const response = (await this.api.post("getBalance")) as ApiResponse<
-      IGetBalanceResponse
-    >;
+    const response = (await this.api.post(
+      "getBalance"
+    )) as ApiResponse<IGetBalanceResponse>;
     if (response.ok && response.data.errorId === 0) {
       return response.data.balance;
     }
@@ -88,7 +88,7 @@ export class AntiCaptcha {
   ) {
     const response = (await this.api.post("createTask", {
       languagePool,
-      task
+      task,
     })) as ApiResponse<ICreateTaskResponse>;
 
     if (response.ok && response.data.errorId === 0) {
@@ -108,7 +108,7 @@ export class AntiCaptcha {
    * @returns {Promise<number>}
    * @memberof AntiCaptcha
    */
-   public async createTaskRecaptchaV2Proxyless(    
+  public async createTaskRecaptchaV2Proxyless(
     websiteURL: string,
     websiteKey: string,
     languagePool: string = "en"
@@ -120,8 +120,8 @@ export class AntiCaptcha {
         websiteKey,
         websiteURL,
         websiteSToken: null,
-        recaptchaDataSValue: null
-      }
+        recaptchaDataSValue: null,
+      },
     })) as ApiResponse<ICreateTaskResponse>;
 
     if (response.ok && response.data.errorId === 0) {
@@ -161,8 +161,40 @@ export class AntiCaptcha {
         pageAction,
         type: TaskTypes.RECAPTCHA_PROXYLESS,
         websiteKey,
-        websiteURL
+        websiteURL,
+      },
+    })) as ApiResponse<ICreateTaskResponse>;
+
+    if (response.ok && response.data.errorId === 0) {
+      if (this.debug) {
+        console.log(`Task [ ${response.data.taskId} ] - Created`);
       }
+      return response.data.taskId;
+    }
+
+    throw new Error(response.data.errorDescription);
+  }
+
+  /**
+   *
+   * @param {string} websiteURL - The URL where the captcha is defined.
+   * @param {string} websitePublicKey - The Arkose Labs public key.
+   * @param {string} languagePool - The language pool. Default to English if not provided.
+   * @returns {Promise<number>}
+   * @memberof AntiCaptcha
+   */
+  public async createTaskFunCaptchaProxyless(
+    websiteURL: string,
+    websitePublicKey: string,
+    languagePool: string = "en"
+  ) {
+    const response = (await this.api.post("createTask", {
+      languagePool,
+      task: {
+        type: TaskTypes.FUNCAPTCHA_PROXYLESS,
+        websitePublicKey,
+        websiteURL,
+      },
     })) as ApiResponse<ICreateTaskResponse>;
 
     if (response.ok && response.data.errorId === 0) {
@@ -208,7 +240,7 @@ export class AntiCaptcha {
         }
 
         const response = (await this.api.post("getTaskResult", {
-          taskId
+          taskId,
         })) as ApiResponse<IGetTaskResultResponse<T>>;
 
         retryCount++; // We update the timeout count
